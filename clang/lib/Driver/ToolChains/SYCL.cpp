@@ -9,12 +9,15 @@
 #include "clang/Basic/Version.h"
 #include "clang/Config/config.h"
 #include "clang/Driver/CommonArgs.h"
+<<<<<<< HEAD
 #include "clang/Driver/Compilation.h"
 #include "clang/Driver/Driver.h"
 #include "llvm/ADT/SmallSet.h"
 #include "llvm/SYCLLowerIR/DeviceConfigFile.hpp"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FormatVariadic.h"
+=======
+>>>>>>> e4225302cd112b4f72bb33374f5f800cb7be8d09
 #include "llvm/Support/Path.h"
 #include "llvm/Support/VirtualFileSystem.h"
 #include <sstream>
@@ -1564,6 +1567,7 @@ void SYCLToolChain::addClangTargetOptions(
     BoundArch BA, Action::OffloadKind DeviceOffloadingKind) const {
   HostTC.addClangTargetOptions(DriverArgs, CC1Args, BA, DeviceOffloadingKind);
 
+<<<<<<< HEAD
   if (DeviceOffloadingKind == Action::OFK_SYCL &&
       !getTriple().isSPIROrSPIRV()) {
     SYCLInstallation.addLibspirvLinkArgs(getEffectiveTriple(), DriverArgs,
@@ -1594,6 +1598,19 @@ void SYCLToolChain::addClangTargetOptions(
   // FIXME: Turn off potential linker warnings when linking in device library
   // files that are built for spir64, but we are compiling for AOT.
   CC1Args.push_back("-Wno-linker-warnings");
+=======
+  // Compilations that stop at or before the compile phase (-E, --precompile,
+  // -fsyntax-only) emit no IR, so they need no device libraries.
+  if (getDriver().getFinalPhase(DriverArgs) <= phases::Compile)
+    return;
+
+  for (const auto &BCFile :
+       getDeviceLibs(DriverArgs, BA, DeviceOffloadingKind)) {
+    CC1Args.push_back(BCFile.ShouldInternalize ? "-mlink-builtin-bitcode"
+                                               : "-mlink-bitcode-file");
+    CC1Args.push_back(DriverArgs.MakeArgStringRef(BCFile.Path));
+  }
+>>>>>>> e4225302cd112b4f72bb33374f5f800cb7be8d09
 }
 
 llvm::opt::DerivedArgList *
@@ -2114,4 +2131,31 @@ SanitizerMask SYCLToolChain::getSupportedSanitizers(
 VersionTuple SYCLToolChain::computeMSVCVersion(const Driver *D,
                                                const ArgList &Args) const {
   return HostTC.computeMSVCVersion(D, Args);
+}
+
+llvm::SmallVector<ToolChain::BitCodeLibraryInfo, 12>
+SYCLToolChain::getDeviceLibs(
+    const llvm::opt::ArgList &DriverArgs, BoundArch /*BA*/,
+    const Action::OffloadKind /*DeviceOffloadingKind*/) const {
+  if (getTriple().getArch() != llvm::Triple::spirv64)
+    return {};
+  if (!DriverArgs.hasFlag(options::OPT_offloadlib, options::OPT_no_offloadlib,
+                          true))
+    return {};
+  // Per-target layout: lib/<triple>/libclang_rt.builtins.bc.
+  if (std::optional<std::string> RuntimeDir = getRuntimePath()) {
+    SmallString<128> BCPath(*RuntimeDir);
+    llvm::sys::path::append(BCPath, "libclang_rt.builtins.bc");
+    if (getVFS().exists(BCPath))
+      return {{std::string(BCPath), /*ShouldInternalize=*/true}};
+  }
+  // Flat layout (LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF):
+  // lib/<os>/libclang_rt.builtins-spirv64.bc.
+  SmallString<128> BCPath(HostTC.getCompilerRTPath());
+  llvm::sys::path::append(BCPath, "libclang_rt.builtins-spirv64.bc");
+  if (getVFS().exists(BCPath))
+    return {{std::string(BCPath), /*ShouldInternalize=*/true}};
+  getDriver().Diag(diag::err_drv_device_lib_not_found)
+      << /*compiler-rt builtins*/ 1 << BCPath;
+  return {};
 }

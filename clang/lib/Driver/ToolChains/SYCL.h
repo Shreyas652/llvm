@@ -225,16 +225,22 @@ public:
   computeMSVCVersion(const Driver *D,
                      const llvm::opt::ArgList &Args) const override;
 
+<<<<<<< HEAD
   // Provides a vector of device library names including the full path that are
   // associated with the offloading kind.
+=======
+>>>>>>> e4225302cd112b4f72bb33374f5f800cb7be8d09
   llvm::SmallVector<BitCodeLibraryInfo, 12>
   getDeviceLibs(const llvm::opt::ArgList &Args, BoundArch BA,
                 const Action::OffloadKind DeviceOffloadingKind) const override;
 
+<<<<<<< HEAD
   SanitizerMask
   getSupportedSanitizers(BoundArch BA,
                          Action::OffloadKind DeviceOffloadKind) const override;
 
+=======
+>>>>>>> e4225302cd112b4f72bb33374f5f800cb7be8d09
 protected:
   Tool *buildBackendCompiler() const override;
   Tool *buildLinker() const override;

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // RUN: %clang -### -fsycl -c %s 2>&1 | FileCheck %s --check-prefix=ENABLED
 // RUN: %clang -### -fsycl %s 2>&1 | FileCheck %s --check-prefix=ENABLED
 // RUN: %clang -### -fno-sycl -fsycl %s 2>&1 | FileCheck %s --check-prefix=ENABLED
@@ -10,6 +11,24 @@
 // RUN: %clang_cl -### -fsycl -- %s 2>&1 | FileCheck %s --check-prefix=ENABLED
 // RUN: %clang_cl -### -- %s 2>&1 | FileCheck %s --check-prefix=NOT_ENABLED
 // RUN: %clang_cl -### -sycl-std=some-std -- %s 2>&1 | FileCheck %s --check-prefix=NOT_ENABLED
+=======
+// RUN: %clang -### -fsycl --no-offloadlib -c %s 2>&1 | FileCheck %s --check-prefix=ENABLED
+// RUN: %clang -### -fsycl --no-offloadlib %s 2>&1 | FileCheck %s --check-prefix=ENABLED
+// RUN: %clang -### -fsycl --no-offloadlib -sycl-std=1.2.1 %s 2>&1 | FileCheck %s --check-prefix=ENABLED
+// RUN: %clang -### -fsycl --no-offloadlib -sycl-std=121 %s 2>&1 | FileCheck %s --check-prefix=ENABLED
+// RUN: %clang -### -fsycl --no-offloadlib -sycl-std=2017 %s 2>&1 | FileCheck %s --check-prefix=ENABLED
+// RUN: %clang -### -fsycl --no-offloadlib -sycl-std=2020 %s 2>&1 | FileCheck %s --check-prefix=ENABLED
+// RUN: %clang -### -fsycl --no-offloadlib -sycl-std=sycl-1.2.1 %s 2>&1 | FileCheck %s --check-prefix=ENABLED
+// RUN: %clang -### -fno-sycl -fsycl --no-offloadlib %s 2>&1 | FileCheck %s --check-prefix=ENABLED
+// RUN: %clang -### -sycl-std=2017 %s 2>&1 | FileCheck %s --check-prefix=DISABLED
+// RUN: %clangxx -### -fsycl --no-offloadlib %s 2>&1 | FileCheck %s --check-prefix=ENABLED
+// RUN: %clangxx -### -fno-sycl %s 2>&1 | FileCheck %s --check-prefix=DISABLED
+// RUN: %clangxx -### -fsycl -fno-sycl %s 2>&1 | FileCheck %s --check-prefix=DISABLED
+// RUN: %clangxx -### %s 2>&1 | FileCheck %s --check-prefix=DISABLED
+// RUN: %clang_cl -### -fsycl --no-offloadlib -sycl-std=2017 -- %s 2>&1 | FileCheck %s --check-prefix=ENABLED
+// RUN: %clang_cl -### -fsycl --no-offloadlib -- %s 2>&1 | FileCheck %s --check-prefix=ENABLED
+// RUN: %clang_cl -### -- %s 2>&1 | FileCheck %s --check-prefix=DISABLED
+>>>>>>> e4225302cd112b4f72bb33374f5f800cb7be8d09
 
 // ENABLED: "-cc1"{{.*}} "-fsycl-is-device"
 // ENABLED-SAME: "-sycl-std={{[-.sycl0-9]+}}"
@@ -22,6 +41,7 @@
 // DISABLED-NOT: "-sycl-std={{.*}}"
 // DISABLED-NOT: "-fsycl-std-layout-kernel-params"
 
+<<<<<<< HEAD
 // RUN: %clang -### -target x86_64-unknown-linux-gnu -fsycl-device-only -c %s 2>&1 | FileCheck %s --check-prefix=DEFAULT -DSPIRARCH=spir64
 // RUN: %clang -### -target x86_64-unknown-linux-gnu -fsycl-device-only %s 2>&1 | FileCheck %s --check-prefix=DEFAULT -DSPIRARCH=spir64
 // RUN: %clang -### -target x86_64-unknown-linux-gnu -fsycl-device-only -S %s 2>&1 | FileCheck %s --check-prefix=TEXTUAL -DSPIRARCH=spir64
@@ -31,6 +51,11 @@
 // RUN: %clang -### -target x86_64-unknown-linux-gnu -fsycl-device-only -c -emit-llvm %s 2>&1 | FileCheck %s --check-prefix=COMBINED -DSPIRARCH=spir64
 // RUN: %clangxx -### -target x86_64-unknown-linux-gnu -fsycl-device-only %s 2>&1 | FileCheck %s --check-prefix=DEFAULT -DSPIRARCH=spir64
 // RUN: %clang_cl -### --target=x86_64-pc-windows-msvc -fsycl-device-only %s 2>&1 | FileCheck %s --check-prefix=DEFAULT -DSPIRARCH=spir64
+=======
+// RUN: %clang -### -fsycl --no-offloadlib %s 2>&1 | FileCheck %s --check-prefix=DEFAULT
+// RUN: %clangxx -### -fsycl --no-offloadlib %s 2>&1 | FileCheck %s --check-prefix=DEFAULT
+// RUN: %clang_cl -### -fsycl --no-offloadlib -- %s 2>&1 | FileCheck %s --check-prefix=DEFAULT
+>>>>>>> e4225302cd112b4f72bb33374f5f800cb7be8d09
 
 /// 32-bit target checks
 // RUN: %clang -### -target i386-unknown-linux-gnu -fsycl-device-only -c %s 2>&1 | FileCheck %s --check-prefix=DEFAULT -DSPIRARCH=spir
@@ -167,5 +192,5 @@
 // CHECK-NO-OFFLOADLIB-NOT: warning: unknown argument ignored in clang-cl: '--no-offloadlib'
 
 // Verify that -fsycl with a C input is an error (enforced in the frontend).
-// RUN: not %clang -fsycl -x c %s 2>&1 | FileCheck %s --check-prefix=CHECK-C-INPUT
+// RUN: not %clang -fsycl --no-offloadlib -x c %s 2>&1 | FileCheck %s --check-prefix=CHECK-C-INPUT
 // CHECK-C-INPUT: error: invalid argument 'C' not allowed with '-fsycl'
